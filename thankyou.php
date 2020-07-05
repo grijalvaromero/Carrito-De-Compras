@@ -13,12 +13,14 @@ if(isset($_POST['c_account_password'])){
         $password = $_POST['c_account_password'];
     }
 }
-$conexion->query("insert into usuario (nombre,telefono,email,password)  
+$conexion->query("insert into usuario (nombre,telefono,email,password,img_perfil,nivel)  
   values( 
     '".$_POST['c_fname']." ".$_POST['c_lname']."',
     '".$_POST['c_phone']."',
     '".$_POST['c_email_address']."',
-    '".sha1($password)."'
+    '".sha1($password)."',
+    'default.jpg',
+    'cliente' 
         )   
 ")or die($conexion->error);
 $id_usuario = $conexion->insert_id;
@@ -36,6 +38,7 @@ for($i=0; $i<count($arreglo);$i++){
       ".$arreglo[$i]['Precio'].",
       ".$arreglo[$i]['Cantidad']*$arreglo[$i]['Precio']."
       ) ")or die($conexion->error);
+  $conexion->query("update productos set inventario =inventario -".$arreglo[$i]['Cantidad']." where id=".$arreglo[$i]['Id']  )or die($conexion->error);    
 }
 
 $conexion->query(" insert into envios(pais,company, direccion,estado,cp,id_venta) values
@@ -50,6 +53,7 @@ $conexion->query(" insert into envios(pais,company, direccion,estado,cp,id_venta
       
       ")or die($conexion->error);
       
+include "./php/mail.php";  
 unset($_SESSION['carrito']);
 ?>
 
@@ -84,7 +88,7 @@ unset($_SESSION['carrito']);
             <span class="icon-check_circle display-3 text-success"></span>
             <h2 class="display-3 text-black">Thank you!</h2>
             <p class="lead mb-5">You order was successfuly completed.</p>
-            <p><a href="shop.html" class="btn btn-sm btn-primary">Back to shop</a></p>
+            <p><a href="verpedido.php?id_venta=<?php echo $id_venta;?>" class="btn btn-sm btn-primary">Ver Pedido</a></p>
           </div>
         </div>
       </div>

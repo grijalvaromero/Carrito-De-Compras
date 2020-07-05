@@ -62,7 +62,22 @@
             <div class="row mb-5">
               <?php 
                 include('./php/conexion.php');
-                $resultado = $conexion ->query("select * from productos order by id DESC limit 10")or die($conexion -> error);
+               /* for($i=0;$i<50;$i++){
+                  $conexion->query("insert into productos (nombre, descripcion,precio,imagen, 
+                                    inventario, id_categoria,talla,color) values (
+                                      'Producto $i','Esta es la descripcion',".rand(10,1000).",'cloth_1.jpg',".rand(1,100).",1,'XL','Blue'
+                                    ) ")or die($conexion->error);
+                }*/
+                $limite = 10;//productos por pagina
+                $totalQuery = $conexion->query('select count(*) from productos')or die($conexion->error);
+                $totalProductos = mysqli_fetch_row($totalQuery);
+                $totalBotones = round($totalProductos[0] /$limite);
+                if(isset($_GET['limite'])){
+                  $resultado = $conexion ->query("select * from productos  where inventario > 0  order by id DESC limit ".$_GET['limite'].",".$limite)or die($conexion -> error);
+                }else{
+                  $resultado = $conexion ->query("select * from productos  where inventario > 0  order by id DESC limit ".$limite)or die($conexion -> error);
+                }
+                
                 while($fila = mysqli_fetch_array($resultado)){
               ?>
                   <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
@@ -87,14 +102,28 @@
               <div class="col-md-12 text-center">
                 <div class="site-block-27">
                   <ul>
-                    <li><a href="#">&lt;</a></li>
-                    <li class="active"><span>1</span></li>
-                    <li><a href="#">2</a></li>
-                    <li><a href="#">3</a></li>
-                    <li><a href="#">4</a></li>
-                    <li><a href="#">5</a></li>
-                    <li><a href="#">&gt;</a></li>
-                  </ul>
+                   
+                      <?php 
+                        if(isset($_GET['limite'])){
+                          if($_GET['limite']>0){
+                            echo ' <li><a href="index.php?limite='.($_GET['limite']-10).'">&lt;</a></li>';
+                          }
+                        }
+
+                        for($k=0;$k<$totalBotones;$k++){
+                          echo  '<li><a href="index.php?limite='.($k*10).'">'.($k+1).'</a></li>';
+                        }
+                        if(isset($_GET['limite'])){
+                          if($_GET['limite']+10 < $totalBotones*10){
+                            echo ' <li><a href="index.php?limite='.($_GET['limite']+10).'">&gt;</a></li>';
+                          }
+                        }else{
+                          echo ' <li><a href="index.php?limite=10">&gt;</a></li>';
+                        }
+                      ?>
+                  
+  
+                   </ul>
                 </div>
               </div>
             </div>

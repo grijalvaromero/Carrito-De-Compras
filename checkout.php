@@ -9,7 +9,7 @@ $arreglo  = $_SESSION['carrito'];
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Shoppers &mdash; Colorlib e-Commerce Template</title>
+    <title>Mi tienda</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -32,7 +32,8 @@ $arreglo  = $_SESSION['carrito'];
   
   <div class="site-wrap">
     <?php include("./layouts/header.php"); ?> 
-    <form action="./thankyou.php" method="post">
+    <form action="./php/insertarpedido.php" method="post">
+      
       <div class="site-section">
         <div class="container">
           <div class="row mb-5">
@@ -215,14 +216,22 @@ $arreglo  = $_SESSION['carrito'];
                   <div class="p-3 p-lg-5 border">
                     
                     <label for="c_code" class="text-black mb-3">Enter your coupon code if you have one</label>
-                    <div class="input-group w-75">
-                      <input type="text" class="form-control" id="c_code" placeholder="Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
-                      <div class="input-group-append">
-                        <button class="btn btn-primary btn-sm" type="button" id="button-addon2">Apply</button>
-                      </div>
-                    </div>
+                    <div class="input-group w-75" id="formCupon">
+                          <input type="text" class="form-control" 
+                            id="c_code" placeholder="Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
+                          <div class="input-group-append">
+                            <button class="btn btn-primary btn-sm" type="button" id="button-addon2">Apply</button>
+                               </div>
+                          
+                        </div>
+                        <h2 id="error" style="display:none"  class="text-danger ">Cupon no valido </h2>
+                        <div class="input-group w-75" id="datosCupon" style="display:none">
+                          <h2 id="textoCupon"  class="text-success h5 "></h2>
+                        </div>
+                   </div>
+                   <input type="hidden" name="id_cupon" id="id_cupon">
 
-                  </div>
+
                 </div>
               </div>
               
@@ -254,38 +263,21 @@ $arreglo  = $_SESSION['carrito'];
                           <td>Order Total</td>
                           <td>$<?php echo number_format($total, 2, '.', '');?></td>
                         </tr>
+                        <tr>
+                          <td class="text-success">
+                            Descuento
+                          </td>
+                          <td id="tdTotal">0</td>
+                        </tr>
+                        <tr>
+                          <td> <b>Total Final</b>  </td>
+                          <td id="tdTotalFinal" 
+                            data-total="<?php echo $total;?>">$<?php echo number_format($total, 2, '.', '');?></td>
+                        </tr>
                       </tbody>
                     </table>
 
-                    <div class="border p-3 mb-3">
-                      <h3 class="h6 mb-0"><a class="d-block" data-toggle="collapse" href="#collapsebank" role="button" aria-expanded="false" aria-controls="collapsebank">Direct Bank Transfer</a></h3>
-
-                      <div class="collapse" id="collapsebank">
-                        <div class="py-2">
-                          <p class="mb-0">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order won’t be shipped until the funds have cleared in our account.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="border p-3 mb-3">
-                      <h3 class="h6 mb-0"><a class="d-block" data-toggle="collapse" href="#collapsecheque" role="button" aria-expanded="false" aria-controls="collapsecheque">Cheque Payment</a></h3>
-
-                      <div class="collapse" id="collapsecheque">
-                        <div class="py-2">
-                          <p class="mb-0">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order won’t be shipped until the funds have cleared in our account.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="border p-3 mb-5">
-                      <h3 class="h6 mb-0"><a class="d-block" data-toggle="collapse" href="#collapsepaypal" role="button" aria-expanded="false" aria-controls="collapsepaypal">Paypal</a></h3>
-
-                      <div class="collapse" id="collapsepaypal">
-                        <div class="py-2">
-                          <p class="mb-0">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order won’t be shipped until the funds have cleared in our account.</p>
-                        </div>
-                      </div>
-                    </div>
+                  
 
                     <div class="form-group">
                       <button class="btn btn-primary btn-lg py-3 btn-block" type="submit">Place Order</button>
@@ -313,6 +305,43 @@ $arreglo  = $_SESSION['carrito'];
   <script src="js/aos.js"></script>
 
   <script src="js/main.js"></script>
-    
+   <script>
+    $(document).ready(function(){
+        $("#button-addon2").click(function(){
+          var codigo = $("#c_code").val();
+          $.ajax({
+            url:"./php/validarcodigo.php",
+            data:{ 
+              codigo:codigo
+            },
+            method:'POST'
+          }).done(function(respuesta){
+            if(respuesta == "error" || respuesta == "codigo no valido"){
+                $("#error").show();
+                $("#id_cupon").val("");
+            }else{
+              var arreglo = JSON.parse(respuesta);
+              if(arreglo.tipo == "moneda"){
+                $("#textoCupon").text("Usted tiene un descuento de "+arreglo.valor+" pesos");
+                $("#tdTotal").text( arreglo.valor+"MXN");
+                var total = parseFloat($("#tdTotalFinal").data('total')) - arreglo.valor;
+                $("#tdTotalFinal").text("$"+ total.toFixed(2) );
+              }else{
+                $("#textoCupon").text("Usted tiene un descuento de "+arreglo.valor+"% en su compra");
+                $("#tdTotal").text( arreglo.valor+"%");
+                var total =   parseFloat($("#tdTotalFinal").data('total')) - ( (arreglo.valor/100) * parseFloat($("#tdTotalFinal").data('total')) ) ;
+                $("#tdTotalFinal").text("$"+ total.toFixed(2) );
+              }
+              $("#formCupon").hide();
+              $("#datosCupon").show();
+              $("#id_cupon").val(arreglo.id);
+            }
+          })
+        });
+        $("#c_code").keyup(function(){
+          $("#error").hide();
+        });
+    });
+   </script>               
   </body>
 </html>

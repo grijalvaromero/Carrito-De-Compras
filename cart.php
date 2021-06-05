@@ -17,6 +17,7 @@
       if($encontro == true){
         $arreglo[$numero]['Cantidad']=$arreglo[$numero]['Cantidad']+1;
         $_SESSION['carrito']=$arreglo;
+        header("Location: ./cart.php");
       }else{
         /// no estaba el registro
         $nombre ="";
@@ -37,6 +38,7 @@
         );
         array_push($arreglo, $arregloNuevo);
         $_SESSION['carrito']=$arreglo;
+        header("Location: ./cart.php");
       }
     }
   }else{
@@ -59,6 +61,7 @@
                   'Cantidad' => 1
       );
       $_SESSION['carrito']=$arreglo;
+      header("Location: ./cart.php");
     }
   }
 ?>
@@ -186,7 +189,7 @@
                     <span class="text-black">Subtotal</span>
                   </div>
                   <div class="col-md-6 text-right">
-                    <strong class="text-black">$<?php echo $total;?></strong>
+                    <strong class="text-black" id="subtotal">$<?php echo $total;?></strong>
                   </div>
                 </div>
                 <div class="row mb-5">
@@ -194,7 +197,7 @@
                     <span class="text-black">Total</span>
                   </div>
                   <div class="col-md-6 text-right">
-                    <strong class="text-black">$<?php echo $total;?></strong>
+                    <strong class="text-black" id="total">$<?php echo $total;?></strong>
                   </div>
                 </div>
 
@@ -253,6 +256,7 @@
       function incrementar(cantidad, precio, id){
         var mult = parseFloat(cantidad)* parseFloat(precio);
         $(".cant"+id).text("$"+mult);
+        $
         $.ajax({
           method:'POST',
           url:'./php/actualizar.php',
@@ -261,7 +265,8 @@
             cantidad:cantidad
           }
         }).done(function(respuesta){
-        
+          $("#total").text("$"+respuesta);
+          $("#subtotal").text("$"+respuesta);
         });
       }
     });

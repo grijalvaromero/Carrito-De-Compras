@@ -1,4 +1,5 @@
 <?php 
+   session_start();
     include('./php/conexion.php');
     if(!isset($_GET['texto'])){
         header("Location: ./index.php");
@@ -69,12 +70,16 @@
             <div class="row mb-5">
               <?php 
                
-                $resultado = $conexion ->query("select * from productos where 
-                    nombre like '%".$_GET['texto']."%' or 
-                    descripcion like '%".$_GET['texto']."%' or
-                    talla like '%".$_GET['texto']."%'  or
-                    color like '%".$_GET['texto']."%' 
-
+                $resultado = $conexion ->query("select productos.*, categorias.nombre as categoria from productos 
+                 inner join categorias on productos.id_categoria  = categorias.id 
+                    where 
+                    productos.nombre like '%".$_GET['texto']."%' or 
+                    productos.descripcion like '%".$_GET['texto']."%' or
+                    productos.talla like '%".$_GET['texto']."%'  or
+                    categorias.nombre like '%".$_GET['texto']."%'  or
+                    productos.color like '%".$_GET['texto']."%' 
+                    
+                    
                     order by id DESC limit 10")or die($conexion -> error);
                     if(mysqli_num_rows($resultado) > 0){ 
 
@@ -120,14 +125,27 @@
 
           <div class="col-md-3 order-1 mb-5 mb-md-0">
             <div class="border p-4 rounded mb-4">
-              <h3 class="mb-3 h6 text-uppercase text-black d-block">Categories</h3>
-              <ul class="list-unstyled mb-0">
-                <li class="mb-1"><a href="#" class="d-flex"><span>Men</span> <span class="text-black ml-auto">(2,220)</span></a></li>
-                <li class="mb-1"><a href="#" class="d-flex"><span>Women</span> <span class="text-black ml-auto">(2,550)</span></a></li>
-                <li class="mb-1"><a href="#" class="d-flex"><span>Children</span> <span class="text-black ml-auto">(2,124)</span></a></li>
-              </ul>
-            </div>
-
+                <h3 class="mb-3 h6 text-uppercase text-black d-block">Categories</h3>
+                <ul class="list-unstyled mb-0">
+                <?php 
+                  $re= $conexion->query("select * from categorias ");
+                  while($f= mysqli_fetch_array($re)){
+                ?>
+                  <li class="mb-1">
+                    <a href="./busqueda.php?texto=<?php echo $f['nombre']?>" class="d-flex">
+                      <span><?php echo $f['nombre'];?></span>
+                      <span class="text-black ml-auto">
+                      <?php 
+                          $re2 = $conexion->query("select count(*) from productos where id_categoria = ".$f['id']);
+                          $fila = mysqli_fetch_row($re2);
+                          echo $fila[0];
+                      ?>
+                      </span>
+                    </a></li>
+                
+                <?php } ?>
+                </ul>
+              </div>
             <div class="border p-4 rounded mb-4">
               <div class="mb-4">
                 <h3 class="mb-3 h6 text-uppercase text-black d-block">Filter by Price</h3>
@@ -138,6 +156,7 @@
               <div class="mb-4">
                 <h3 class="mb-3 h6 text-uppercase text-black d-block">Size</h3>
                 <label for="s_sm" class="d-flex">
+                  
                   <input type="checkbox" id="s_sm" class="mr-2 mt-1"> <span class="text-black">Small (2,319)</span>
                 </label>
                 <label for="s_md" class="d-flex">
